@@ -2,11 +2,14 @@ package Compressor;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 
 public class HuffmanCompressor implements ICompressor {
 
     private byte[] fileInputAsByteArray;
     private String outputFile;
+    private ArrayList<FrequencyNode> frequencyTable;
 
     public HuffmanCompressor(byte[] fileInputAsByteArray, String outputFile) {
         this.fileInputAsByteArray = fileInputAsByteArray;
@@ -22,19 +25,23 @@ public class HuffmanCompressor implements ICompressor {
 
     private void createFrequencyTable() {
 
-        ArrayList<FrequencyNode> frequencyTable = new ArrayList<FrequencyNode>();
+        this.frequencyTable = new ArrayList<>();
 
         for(byte value : this.fileInputAsByteArray) {
-            if(existInFrequencyTable(value, frequencyTable)) {
-
+            if(!existInFrequencyTable(value, frequencyTable)) {
+                frequencyTable.add(new FrequencyNode(value));
             }
         }
+
+        Collections.sort(this.frequencyTable);
     }
 
-    private boolean existInFrequencyTable(byte value, ArrayList<FrequencyNode> frequencyTable) {
+    private boolean existInFrequencyTable(byte newValue, ArrayList<FrequencyNode> frequencyTable) {
 
-        for(int i = 0; i < frequencyTable.size(); i++) {
-            if(Byte.compare(value, frequencyTable.get(i).getValue()) == 0) {
+        for (FrequencyNode currentNode : frequencyTable) {
+
+            if (Byte.compare(newValue, currentNode.getValue()) == 0) {
+                currentNode.incrementValue();
                 return true;
             }
         }
