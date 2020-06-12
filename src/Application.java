@@ -17,6 +17,7 @@ public class Application {
 
         // Declare input file path
         byte[] fileInputAsByteArray = FileInputToByteArrayConverter.convert(args[2]);
+        System.out.println(new String(fileInputAsByteArray));
 
         // Declare output file path
         String dstPath = args[3];

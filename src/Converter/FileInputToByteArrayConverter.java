@@ -20,7 +20,6 @@ public class FileInputToByteArrayConverter {
             System.out.println("Sorry, this file doesn't exist.");
         }
 
-        System.out.println(bos);
         return bos.toByteArray();
     }
 }

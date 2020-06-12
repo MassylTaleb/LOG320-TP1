@@ -1,13 +1,21 @@
 package Compressor;
 
-public class FrequencyNode implements Comparable<FrequencyNode>, Cloneable {
+public class FrequencyNode implements Comparable<FrequencyNode> {
 
     private int frequency;
     private byte value;
+    private FrequencyNode leftNode;
+    private FrequencyNode rightNode;
 
     public FrequencyNode(byte value) {
         this.frequency = 1;
         this.value = value;
+    }
+
+    public FrequencyNode(FrequencyNode leftNode, FrequencyNode rightNode) {
+        this.frequency = leftNode.frequency + rightNode.frequency;
+        this.leftNode = leftNode;
+        this.rightNode = rightNode;
     }
 
     public void incrementValue() {
@@ -25,6 +33,14 @@ public class FrequencyNode implements Comparable<FrequencyNode>, Cloneable {
     }
 
     public int getFrequency() { return frequency; }
+
+    public FrequencyNode getLeftNode() {
+        return leftNode;
+    }
+
+    public FrequencyNode getRightNode() {
+        return rightNode;
+    }
 
     public String toString() {
         return String.valueOf(this.frequency) + " - " + new String(new byte[] {this.value});
