@@ -16,6 +16,7 @@ public class FileInputToByteArrayConverter {
             while((i=fis.read()) != -1) {
                 bos.write(i);
             }
+            fis.close();
         } catch (IOException e) {
             System.out.println("Sorry, this file doesn't exist.");
         }

@@ -1,6 +1,8 @@
 package Compressor;
 
-public class FrequencyNode implements Comparable<FrequencyNode> {
+import java.io.Serializable;
+
+public class FrequencyNode implements Comparable<FrequencyNode>, Serializable {
 
     private int frequency;
     private byte value;
@@ -43,6 +45,6 @@ public class FrequencyNode implements Comparable<FrequencyNode> {
     }
 
     public String toString() {
-        return String.valueOf(this.frequency) + " - " + new String(new byte[] {this.value});
+        return this.frequency + " - " + new String(new byte[] {this.value});
     }
 }
