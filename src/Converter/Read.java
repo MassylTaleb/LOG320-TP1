@@ -4,9 +4,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 
-public class FileInputToByteArrayConverter {
+public class Read {
 
-    public static byte[] convert(String inputPath) {
+    public static byte[] convertFileToByteArray(String inputPath) {
 
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
 

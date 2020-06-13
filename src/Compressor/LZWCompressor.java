@@ -30,16 +30,16 @@ public class LZWCompressor implements ICompressor {
         Map<String, Integer> dictionary = new HashMap<String, Integer>();
         List<Integer> compressedChain = new ArrayList<Integer>();
         int dictionarySize = 256;
-        char c;
+        byte c;
         String s;
 
         for (int i = 0; i < dictionarySize; i++) {
             dictionary.put("" + (char) i, i);
         }
 
-        s = "" + fileInputAsByteArray.get(0);
+        s = "" + fileInputAsByteArray[0];
         for (int i = 1; i < fileInputAsByteArray.length; i++) {
-            c = fileInputAsByteArray.get(i);
+            c = fileInputAsByteArray[i];
             String sc = s + c;
             if (dictionary.containsKey(sc)) {
                 s = sc;
@@ -81,7 +81,7 @@ public class LZWCompressor implements ICompressor {
         }
 
         for (int i = 0; i < fileInputAsByteArray.length; i++) {
-            k = fileInputAsByteArray.get(i);
+            k = fileInputAsByteArray[i];
             seq=dictionary.get(k);
             if(seq.equals("")) {
                 seq=s + s.charAt(0);
