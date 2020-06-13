@@ -1,34 +1,38 @@
 package Compressor;
 
+import Converter.Read;
+import Converter.Write;
 import Model.HuffmanData;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.util.*;
 
-public class HuffmanCompressor implements ICompressor {
+public class HuffmanCompressor implements ICompressor, Serializable {
 
-    private byte[] fileInputAsByteArray;
+    private String inputFile;
     private String outputFile;
 
-    public HuffmanCompressor(byte[] fileInputAsByteArray, String outputFile) {
-        this.fileInputAsByteArray = fileInputAsByteArray;
+    public HuffmanCompressor(String inputFile, String outputFile) {
+        this.inputFile = inputFile;
         this.outputFile = outputFile;
     }
 
     @Override
     public void compress() {
-        ArrayList<FrequencyNode> frequencyTable = createFrequencyTable();
+
+        byte[] fileInputAsByteArray = Read.convertFileToByteArray(this.inputFile);
+        System.out.println(new String(fileInputAsByteArray));
+
+        ArrayList<FrequencyNode> frequencyTable = createFrequencyTable(fileInputAsByteArray);
         FrequencyNode rootNode = createHuffmanTree(new ArrayList<>(frequencyTable));
-        encode(frequencyTable, rootNode);
+        encode(frequencyTable, rootNode, fileInputAsByteArray);
     }
 
-    private ArrayList<FrequencyNode> createFrequencyTable() {
+    private ArrayList<FrequencyNode> createFrequencyTable(byte[] fileInputAsByteArray) {
 
         ArrayList<FrequencyNode> frequencyTable = new ArrayList<>();
 
-        for(byte value : this.fileInputAsByteArray) {
+        for(byte value : fileInputAsByteArray) {
             if(!existInFrequencyTable(value, frequencyTable)) {
                 frequencyTable.add(new FrequencyNode(value));
             }
@@ -74,14 +78,17 @@ public class HuffmanCompressor implements ICompressor {
         return frequencyTable.get(0);
     }
 
-    private void encode(ArrayList<FrequencyNode> frequencyTable, FrequencyNode currentNode) {
+    private void encode(ArrayList<FrequencyNode> frequencyTable, FrequencyNode currentNode, byte[] fileInputAsByteArray) {
 
         Map<String, String> codeValueMap = new HashMap<>();
         createCodeValueMap(codeValueMap, currentNode, "");
-        String encodedValue = createEncodedValue(codeValueMap);
+        String encodedValue = createEncodedValue(codeValueMap, fileInputAsByteArray);
+
         int extraBitsToAdd = encodedValue.length() % 8;
         byte[] resultValueInByteArray = encodeValueInByteArray(encodedValue, extraBitsToAdd);
-        saveEncodedValueToDestinationFile(resultValueInByteArray, frequencyTable, extraBitsToAdd);
+
+        HuffmanData dataToSave = new HuffmanData(frequencyTable, resultValueInByteArray, extraBitsToAdd);
+        Write.saveDataToFile(dataToSave, this.outputFile);
     }
 
     private void createCodeValueMap(Map<String, String> codeValueMap, FrequencyNode currentNode, String codeCurrentNode) {
@@ -95,12 +102,12 @@ public class HuffmanCompressor implements ICompressor {
         codeValueMap.put(new String(new byte[] {currentNode.getValue()}), codeCurrentNode);
     }
 
-    private String createEncodedValue(Map<String, String> codeValueMap) {
+    private String createEncodedValue(Map<String, String> codeValueMap, byte[] fileInputAsByteArray) {
 
         ArrayList<String> valueOfEachCharacter = new ArrayList<>();
         StringBuilder codedFileInBinary = new StringBuilder();
 
-        for(byte byteValue : this.fileInputAsByteArray) {
+        for(byte byteValue : fileInputAsByteArray) {
             valueOfEachCharacter.add(codeValueMap.get(new String(new byte[] {byteValue})));
         }
 
@@ -133,21 +140,18 @@ public class HuffmanCompressor implements ICompressor {
         return encodedInByte;
     }
 
-    private void saveEncodedValueToDestinationFile(byte[] encodedInByte, ArrayList<FrequencyNode> frequencyTable, int extraBitsToAdd) {
-
-        try {
-            FileOutputStream fos = new FileOutputStream(this.outputFile);
-            ObjectOutputStream oos = new ObjectOutputStream(fos);
-            HuffmanData dataToSave = new HuffmanData(frequencyTable, encodedInByte, extraBitsToAdd);
-            oos.writeObject(dataToSave);
-            oos.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     @Override
     public void decompress() {
 
+//        try {
+//            FileInputStream fis = new FileInputStream(this.inputFile);
+//            ObjectInputStream oos = new ObjectInputStream(fis);
+//            HuffmanData huffmanData = (HuffmanData) oos.readObject();
+//            System.out.println(huffmanData.getFrequencyTable());
+//            System.out.println(Arrays.toString(huffmanData.getFileContentCompressed()));
+//            System.out.println(huffmanData.getExtraBitsToAdd());
+//        } catch (IOException | ClassNotFoundException e) {
+//            e.printStackTrace();
+//        }
     }
 }

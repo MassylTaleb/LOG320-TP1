@@ -16,4 +16,16 @@ public class HuffmanData implements Serializable {
         this.fileContentCompressed = fileContentCompressed;
         this.extraBitsToAdd = extraBitsToAdd;
     }
+
+    public ArrayList<FrequencyNode> getFrequencyTable() {
+        return frequencyTable;
+    }
+
+    public byte[] getFileContentCompressed() {
+        return fileContentCompressed;
+    }
+
+    public int getExtraBitsToAdd() {
+        return extraBitsToAdd;
+    }
 }
