@@ -1,16 +1,20 @@
 package Compressor;
 
-import java.io.*;
+import Converter.Read;
+
 import java.util.*;
 
 public class LZWCompressor implements ICompressor {
 
-    private byte[] fileInputAsByteArray;
+    private String inputFile;
     private String outputFile;
+    private byte[] fileInputAsByteArray;
 
-    public LZWCompressor(byte[] fileInputAsByteArray, String outputFile) {
-        this.fileInputAsByteArray = fileInputAsByteArray;
+    public LZWCompressor(String inputFile, String outputFile) {
+        this.inputFile = inputFile;
         this.outputFile = outputFile;
+        this.fileInputAsByteArray = Read.convertFileToByteArray(this.inputFile);
+        System.out.println(new String(fileInputAsByteArray));
     }
 
     /*

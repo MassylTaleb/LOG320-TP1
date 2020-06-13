@@ -1,5 +1,6 @@
-import Compressor.*;
-import Converter.*;
+import Compressor.HuffmanCompressor;
+import Compressor.ICompressor;
+import Compressor.LZWCompressor;
 
 public class Application {
 
@@ -14,8 +15,7 @@ public class Application {
         String actionOnFile = args[1];
 
         // Declare input file path
-        byte[] fileInputAsByteArray = FileInputToByteArrayConverter.convert(args[2]);
-        System.out.println(new String(fileInputAsByteArray));
+        String srcPath = args[2];
 
         // Declare output file path
         String dstPath = args[3];
@@ -25,7 +25,7 @@ public class Application {
         switch(methodSelected) {
             case(Constants.HUFFMAN):
 
-                method = new HuffmanCompressor(fileInputAsByteArray, dstPath);
+                method = new HuffmanCompressor(srcPath, dstPath);
 
                 if(actionOnFile.equals(Constants.COMPRESS)) {
                     method.compress();
@@ -38,7 +38,7 @@ public class Application {
 
             case(Constants.LZW):
 
-                method = new LZWCompressor(fileInputAsByteArray, dstPath);
+                method = new LZWCompressor(srcPath, dstPath);
 
                 if(actionOnFile.equals(Constants.COMPRESS)) {
                     method.compress();
