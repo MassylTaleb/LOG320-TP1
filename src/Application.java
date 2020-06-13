@@ -1,7 +1,5 @@
-import Compressor.HuffmanCompressor;
-import Compressor.ICompressor;
-import Compressor.LZWCompressor;
-import Converter.FileInputToByteArrayConverter;
+import Compressor.*;
+import Converter.*;
 
 public class Application {
 
@@ -40,7 +38,7 @@ public class Application {
 
             case(Constants.LZW):
 
-                method = new LZWCompressor();
+                method = new LZWCompressor(fileInputAsByteArray, dstPath);
 
                 if(actionOnFile.equals(Constants.COMPRESS)) {
                     method.compress();

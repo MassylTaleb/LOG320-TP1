@@ -38,7 +38,7 @@ public class LZWCompressor implements ICompressor {
         }
 
         s = "" + fileInputAsByteArray.get(0);
-        for (int i = 1; i < fileInputAsByteArray.size(); i++) {
+        for (int i = 1; i < fileInputAsByteArray.length; i++) {
             c = fileInputAsByteArray.get(i);
             String sc = s + c;
             if (dictionary.containsKey(sc)) {
@@ -80,7 +80,7 @@ public class LZWCompressor implements ICompressor {
             dictionary.put(i, "" + (char) i);
         }
 
-        for (int i = 0; i < fileInputAsByteArray.size(); i++) {
+        for (int i = 0; i < fileInputAsByteArray.length; i++) {
             k = fileInputAsByteArray.get(i);
             seq=dictionary.get(k);
             if(seq.equals("")) {
