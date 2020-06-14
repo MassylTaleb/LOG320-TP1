@@ -9,12 +9,12 @@ public class HuffmanData implements Serializable {
 
     private ArrayList<FrequencyNode> frequencyTable;
     private byte[] fileContentCompressed;
-    private int extraBitsToAdd;
+    private int extraBits;
 
-    public HuffmanData(ArrayList<FrequencyNode> frequencyTable, byte[] fileContentCompressed, int extraBitsToAdd) {
+    public HuffmanData(ArrayList<FrequencyNode> frequencyTable, byte[] fileContentCompressed, int extraBits) {
         this.frequencyTable = frequencyTable;
         this.fileContentCompressed = fileContentCompressed;
-        this.extraBitsToAdd = extraBitsToAdd;
+        this.extraBits = extraBits;
     }
 
     public ArrayList<FrequencyNode> getFrequencyTable() {
@@ -25,7 +25,7 @@ public class HuffmanData implements Serializable {
         return fileContentCompressed;
     }
 
-    public int getExtraBitsToAdd() {
-        return extraBitsToAdd;
+    public int getExtraBits() {
+        return extraBits;
     }
 }

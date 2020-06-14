@@ -3,6 +3,7 @@ package Compressor;
 import Converter.Read;
 import Converter.Write;
 import Model.HuffmanData;
+import Tools.Constants;
 
 import java.io.*;
 import java.util.*;
@@ -21,9 +22,10 @@ public class HuffmanCompressor implements ICompressor, Serializable {
     public void compress() {
 
         byte[] fileInputAsByteArray = Read.convertFileToByteArray(this.inputFile);
-        System.out.println(new String(fileInputAsByteArray));
+        System.out.println("To compress : " + new String(fileInputAsByteArray));
 
         ArrayList<FrequencyNode> frequencyTable = createFrequencyTable(fileInputAsByteArray);
+
         FrequencyNode rootNode = createHuffmanTree(new ArrayList<>(frequencyTable));
         encode(frequencyTable, rootNode, fileInputAsByteArray);
     }
@@ -78,14 +80,15 @@ public class HuffmanCompressor implements ICompressor, Serializable {
         return frequencyTable.get(0);
     }
 
-    private void encode(ArrayList<FrequencyNode> frequencyTable, FrequencyNode currentNode, byte[] fileInputAsByteArray) {
+    private void encode(ArrayList<FrequencyNode> frequencyTable, FrequencyNode rootNode, byte[] fileInputAsByteArray) {
 
         Map<String, String> codeValueMap = new HashMap<>();
-        createCodeValueMap(codeValueMap, currentNode, "");
+        createCodeValueMap(codeValueMap, rootNode, "");
         String encodedValue = createEncodedValue(codeValueMap, fileInputAsByteArray);
+        System.out.println(encodedValue);
 
         int extraBitsToAdd = encodedValue.length() % 8;
-        byte[] resultValueInByteArray = encodeValueInByteArray(encodedValue, extraBitsToAdd);
+        byte[] resultValueInByteArray = encodeValueToByteArray(encodedValue, extraBitsToAdd);
 
         HuffmanData dataToSave = new HuffmanData(frequencyTable, resultValueInByteArray, extraBitsToAdd);
         Write.saveDataToFile(dataToSave, this.outputFile);
@@ -95,8 +98,8 @@ public class HuffmanCompressor implements ICompressor, Serializable {
 
         if(currentNode.getLeftNode() != null && currentNode.getRightNode() != null) {
 
-            createCodeValueMap(codeValueMap, currentNode.getLeftNode(),  "0" + codeCurrentNode);
-            createCodeValueMap(codeValueMap, currentNode.getRightNode(), "1" + codeCurrentNode);
+            createCodeValueMap(codeValueMap, currentNode.getLeftNode(),  codeCurrentNode + "0");
+            createCodeValueMap(codeValueMap, currentNode.getRightNode(),  codeCurrentNode + "1");
         }
 
         codeValueMap.put(new String(new byte[] {currentNode.getValue()}), codeCurrentNode);
@@ -118,15 +121,14 @@ public class HuffmanCompressor implements ICompressor, Serializable {
         return codedFileInBinary.toString();
     }
 
-    private byte[] encodeValueInByteArray(String encodedValue, int extraBitsToAdd) {
-        int encodedValueLength = encodedValue.length();
-        int numberOfByte = encodedValueLength / 8;
+    private byte[] encodeValueToByteArray(String encodedValue, int extraBitsToAdd) {
 
         if(extraBitsToAdd != 0) {
             encodedValue = encodedValue + "0".repeat(extraBitsToAdd);
-            encodedValueLength = encodedValue.length();
-            numberOfByte++;
         }
+
+        int encodedValueLength = encodedValue.length();
+        int numberOfByte = encodedValueLength / 8;
 
         byte[] encodedInByte = new byte[numberOfByte];
 
@@ -143,15 +145,58 @@ public class HuffmanCompressor implements ICompressor, Serializable {
     @Override
     public void decompress() {
 
-//        try {
-//            FileInputStream fis = new FileInputStream(this.inputFile);
-//            ObjectInputStream oos = new ObjectInputStream(fis);
-//            HuffmanData huffmanData = (HuffmanData) oos.readObject();
-//            System.out.println(huffmanData.getFrequencyTable());
-//            System.out.println(Arrays.toString(huffmanData.getFileContentCompressed()));
-//            System.out.println(huffmanData.getExtraBitsToAdd());
-//        } catch (IOException | ClassNotFoundException e) {
-//            e.printStackTrace();
-//        }
+        HuffmanData huffmanData = Read.convertFileToHuffmanData(this.inputFile);
+        FrequencyNode rootNode = createHuffmanTree(new ArrayList<>(huffmanData.getFrequencyTable()));
+
+        String[] decodedValue = decodeValueToString(huffmanData.getFileContentCompressed(), huffmanData.getExtraBits());
+        System.out.println(Arrays.toString(decodedValue));
+        byte[] decompressedValue = constructOriginalFile(decodedValue, rootNode);
+        System.out.println("Decompressed : " + new String(decompressedValue));
+    }
+
+    private String[] decodeValueToString(byte[] fileContentCompressed, int extraBits) {
+
+        StringBuilder constructValue = new StringBuilder();
+
+        for(byte value : fileContentCompressed) {
+            String valueOfByte = String.format("%8s", Integer.toBinaryString(value)).replace(' ', '0');
+            if (value < 0) {
+                StringBuilder sb = new StringBuilder(valueOfByte);
+                valueOfByte = sb.substring(24, 32);
+            }
+            if (value == fileContentCompressed[fileContentCompressed.length - 1]) {
+                StringBuilder sb = new StringBuilder(valueOfByte);
+                valueOfByte = sb.substring(0, 8 - extraBits);
+            }
+            constructValue.append(valueOfByte);
+        }
+
+        return constructValue.toString().split("(?!^)");
+    }
+
+    private byte[] constructOriginalFile(String[] decodedValue, FrequencyNode rootNode) {
+
+        ByteArrayOutputStream decompressedValue = new ByteArrayOutputStream();
+        FrequencyNode currentNode = rootNode;
+
+        for(String value : decodedValue) {
+            if(value.equals(Constants.LEFT)) {
+                currentNode = currentNode.getLeftNode();
+            } else if(value.equals(Constants.RIGHT)) {
+                currentNode = currentNode.getRightNode();
+            }
+
+            if(currentNode.getLeftNode() == null && currentNode.getRightNode() == null) {
+
+                try {
+                    decompressedValue.write(currentNode.getValue());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                currentNode = rootNode;
+            }
+        }
+
+        return decompressedValue.toByteArray();
     }
 }

@@ -1,8 +1,11 @@
 package Converter;
 
+import Model.HuffmanData;
+
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 
 public class Read {
 
@@ -17,10 +20,27 @@ public class Read {
                 bos.write(i);
             }
             fis.close();
+            bos.close();
         } catch (IOException e) {
             System.out.println("Sorry, this file doesn't exist.");
         }
 
         return bos.toByteArray();
+    }
+
+    public static HuffmanData convertFileToHuffmanData(String inputPath) {
+
+        HuffmanData huffmanData = null;
+        try {
+            FileInputStream fis = new FileInputStream(inputPath);
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            huffmanData = (HuffmanData) ois.readObject();
+            fis.close();
+            ois.close();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        return huffmanData;
     }
 }

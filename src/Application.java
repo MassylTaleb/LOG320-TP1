@@ -1,6 +1,7 @@
 import Compressor.HuffmanCompressor;
 import Compressor.ICompressor;
 import Compressor.LZWCompressor;
+import Tools.Constants;
 
 public class Application {
 
@@ -30,6 +31,8 @@ public class Application {
                 if(actionOnFile.equals(Constants.COMPRESS)) {
                     method.compress();
                 } else if (actionOnFile.equals(Constants.DECOMPRESS)) {
+                    ICompressor methodCompress = new HuffmanCompressor(args[4], srcPath);
+                    methodCompress.compress();
                     method.decompress();
                 } else {
                     System.out.println("Sorry, the argument received are incorrect. Use -c for compression or -d for decompression.");
