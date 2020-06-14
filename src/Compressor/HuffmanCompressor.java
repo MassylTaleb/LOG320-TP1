@@ -22,12 +22,22 @@ public class HuffmanCompressor implements ICompressor, Serializable {
     public void compress() {
 
         byte[] fileInputAsByteArray = Read.convertFileToByteArray(this.inputFile);
-        System.out.println("To compress : " + new String(fileInputAsByteArray));
-
         ArrayList<FrequencyNode> frequencyTable = createFrequencyTable(fileInputAsByteArray);
 
         FrequencyNode rootNode = createHuffmanTree(new ArrayList<>(frequencyTable));
         encode(frequencyTable, rootNode, fileInputAsByteArray);
+    }
+
+    @Override
+    public void decompress() {
+
+        HuffmanData huffmanData = Read.convertFileToHuffmanData(this.inputFile);
+        FrequencyNode rootNode = createHuffmanTree(new ArrayList<>(huffmanData.getFrequencyTable()));
+
+        String[] decodedValue = decodeValueToString(huffmanData.getFileContentCompressed(), huffmanData.getExtraBits());
+        byte[] decompressedValue = constructOriginalFile(decodedValue, rootNode);
+
+        Write.saveByteArrayToFile(decompressedValue, this.outputFile);
     }
 
     private ArrayList<FrequencyNode> createFrequencyTable(byte[] fileInputAsByteArray) {
@@ -85,7 +95,6 @@ public class HuffmanCompressor implements ICompressor, Serializable {
         Map<String, String> codeValueMap = new HashMap<>();
         createCodeValueMap(codeValueMap, rootNode, "");
         String encodedValue = createEncodedValue(codeValueMap, fileInputAsByteArray);
-        System.out.println(encodedValue);
 
         int extraBitsToAdd = encodedValue.length() % 8;
         byte[] resultValueInByteArray = encodeValueToByteArray(encodedValue, extraBitsToAdd);
@@ -140,18 +149,6 @@ public class HuffmanCompressor implements ICompressor, Serializable {
         }
 
         return encodedInByte;
-    }
-
-    @Override
-    public void decompress() {
-
-        HuffmanData huffmanData = Read.convertFileToHuffmanData(this.inputFile);
-        FrequencyNode rootNode = createHuffmanTree(new ArrayList<>(huffmanData.getFrequencyTable()));
-
-        String[] decodedValue = decodeValueToString(huffmanData.getFileContentCompressed(), huffmanData.getExtraBits());
-        System.out.println(Arrays.toString(decodedValue));
-        byte[] decompressedValue = constructOriginalFile(decodedValue, rootNode);
-        System.out.println("Decompressed : " + new String(decompressedValue));
     }
 
     private String[] decodeValueToString(byte[] fileContentCompressed, int extraBits) {

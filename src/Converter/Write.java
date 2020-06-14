@@ -19,4 +19,15 @@ public class Write {
             e.printStackTrace();
         }
     }
+
+    public static void saveByteArrayToFile(byte[] decompressedData, String destinationPath) {
+
+        try {
+            FileOutputStream fos = new FileOutputStream(destinationPath);
+            fos.write(decompressedData);
+            fos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }
