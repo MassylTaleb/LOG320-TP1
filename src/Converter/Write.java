@@ -20,6 +20,7 @@ public class Write {
         }
     }
 
+<<<<<<< HEAD
     public static void saveDataToFile(LZWData lzwData, String destinationPath) {
 
         System.out.println(lzwData);
@@ -41,6 +42,14 @@ public class Write {
                 writer.write(str.toString());
             }
             writer.close();
+=======
+    public static void saveByteArrayToFile(byte[] decompressedData, String destinationPath) {
+
+        try {
+            FileOutputStream fos = new FileOutputStream(destinationPath);
+            fos.write(decompressedData);
+            fos.close();
+>>>>>>> 03123d31e3d1c88cd51118aa47302892a3ada6d2
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -3,11 +3,15 @@ package Converter;
 import Model.HuffmanData;
 import Model.LZWData;
 
+<<<<<<< HEAD
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+=======
+import java.io.*;
+>>>>>>> 03123d31e3d1c88cd51118aa47302892a3ada6d2
 
 public class Read {
 

@@ -45,6 +45,6 @@ public class FrequencyNode implements Comparable<FrequencyNode>, Serializable {
     }
 
     public String toString() {
-        return this.frequency + " - " + new String(new byte[] {this.value});
+        return this.frequency + " - " + this.value;
     }
 }
