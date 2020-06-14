@@ -23,21 +23,8 @@ public class HuffmanCompressor implements ICompressor, Serializable {
 
         byte[] fileInputAsByteArray = Read.convertFileToByteArray(this.inputFile);
         ArrayList<FrequencyNode> frequencyTable = createFrequencyTable(fileInputAsByteArray);
-
         FrequencyNode rootNode = createHuffmanTree(new ArrayList<>(frequencyTable));
         encode(frequencyTable, rootNode, fileInputAsByteArray);
-    }
-
-    @Override
-    public void decompress() {
-
-        HuffmanData huffmanData = Read.convertFileToHuffmanData(this.inputFile);
-        FrequencyNode rootNode = createHuffmanTree(new ArrayList<>(huffmanData.getFrequencyTable()));
-
-        String[] decodedValue = decodeValueToString(huffmanData.getFileContentCompressed(), huffmanData.getExtraBits());
-        byte[] decompressedValue = constructOriginalFile(decodedValue, rootNode);
-
-        Write.saveByteArrayToFile(decompressedValue, this.outputFile);
     }
 
     private ArrayList<FrequencyNode> createFrequencyTable(byte[] fileInputAsByteArray) {
@@ -92,18 +79,18 @@ public class HuffmanCompressor implements ICompressor, Serializable {
 
     private void encode(ArrayList<FrequencyNode> frequencyTable, FrequencyNode rootNode, byte[] fileInputAsByteArray) {
 
-        Map<String, String> codeValueMap = new HashMap<>();
+        Map<Byte, String> codeValueMap = new HashMap<>();
         createCodeValueMap(codeValueMap, rootNode, "");
         String encodedValue = createEncodedValue(codeValueMap, fileInputAsByteArray);
 
-        int extraBitsToAdd = encodedValue.length() % 8;
+        int extraBitsToAdd = 8 - (encodedValue.length() % 8);
         byte[] resultValueInByteArray = encodeValueToByteArray(encodedValue, extraBitsToAdd);
 
         HuffmanData dataToSave = new HuffmanData(frequencyTable, resultValueInByteArray, extraBitsToAdd);
         Write.saveDataToFile(dataToSave, this.outputFile);
     }
 
-    private void createCodeValueMap(Map<String, String> codeValueMap, FrequencyNode currentNode, String codeCurrentNode) {
+    private void createCodeValueMap(Map<Byte, String> codeValueMap, FrequencyNode currentNode, String codeCurrentNode) {
 
         if(currentNode.getLeftNode() != null && currentNode.getRightNode() != null) {
 
@@ -111,16 +98,16 @@ public class HuffmanCompressor implements ICompressor, Serializable {
             createCodeValueMap(codeValueMap, currentNode.getRightNode(),  codeCurrentNode + "1");
         }
 
-        codeValueMap.put(new String(new byte[] {currentNode.getValue()}), codeCurrentNode);
+        codeValueMap.put(currentNode.getValue(), codeCurrentNode);
     }
 
-    private String createEncodedValue(Map<String, String> codeValueMap, byte[] fileInputAsByteArray) {
+    private String createEncodedValue(Map<Byte, String> codeValueMap, byte[] fileInputAsByteArray) {
 
         ArrayList<String> valueOfEachCharacter = new ArrayList<>();
         StringBuilder codedFileInBinary = new StringBuilder();
 
         for(byte byteValue : fileInputAsByteArray) {
-            valueOfEachCharacter.add(codeValueMap.get(new String(new byte[] {byteValue})));
+            valueOfEachCharacter.add(codeValueMap.get(byteValue));
         }
 
         for(String value : valueOfEachCharacter) {
@@ -137,49 +124,39 @@ public class HuffmanCompressor implements ICompressor, Serializable {
         }
 
         int encodedValueLength = encodedValue.length();
-        int numberOfByte = encodedValueLength / 8;
+        byte[] encodedInByte = new byte[encodedValueLength / 8];
 
-        byte[] encodedInByte = new byte[numberOfByte];
-
-        for(int j = 0; j < encodedInByte.length; j++) {
-            if((j * 8) < encodedValueLength) {
-                int valueOfByte = Integer.parseInt(encodedValue.substring((j * 8), (j * 8) + 8), 2);
-                encodedInByte[j] = (byte) valueOfByte;
+        for(int i = 0; i < encodedInByte.length; i++) {
+            if((i * 8) < encodedValueLength) {
+                int valueOfByte = Integer.parseInt(encodedValue.substring((i * 8), (i * 8) + 8), 2);
+                encodedInByte[i] = (byte) valueOfByte;
             }
         }
 
         return encodedInByte;
     }
 
-    private String[] decodeValueToString(byte[] fileContentCompressed, int extraBits) {
+    @Override
+    public void decompress() {
 
-        StringBuilder constructValue = new StringBuilder();
-
-        for(byte value : fileContentCompressed) {
-            String valueOfByte = String.format("%8s", Integer.toBinaryString(value)).replace(' ', '0');
-            if (value < 0) {
-                StringBuilder sb = new StringBuilder(valueOfByte);
-                valueOfByte = sb.substring(24, 32);
-            }
-            if (value == fileContentCompressed[fileContentCompressed.length - 1]) {
-                StringBuilder sb = new StringBuilder(valueOfByte);
-                valueOfByte = sb.substring(0, 8 - extraBits);
-            }
-            constructValue.append(valueOfByte);
-        }
-
-        return constructValue.toString().split("(?!^)");
+        HuffmanData huffmanData = Read.convertFileToHuffmanData(this.inputFile);
+        FrequencyNode rootNode = createHuffmanTree(new ArrayList<>(huffmanData.getFrequencyTable()));
+        byte[] decodedValue = decodeValueToString(huffmanData.getFileContentCompressed(), huffmanData.getExtraBits(), rootNode);
+        Write.saveByteArrayToFile(decodedValue, this.outputFile);
     }
 
-    private byte[] constructOriginalFile(String[] decodedValue, FrequencyNode rootNode) {
+    private byte[] decodeValueToString(byte[] fileContentCompressed, int extraBits, FrequencyNode rootNode) {
 
-        ByteArrayOutputStream decompressedValue = new ByteArrayOutputStream();
+        int numberOfBits = (fileContentCompressed.length * 8) - extraBits;
         FrequencyNode currentNode = rootNode;
+        ByteArrayOutputStream decompressedValue = new ByteArrayOutputStream();
 
-        for(String value : decodedValue) {
-            if(value.equals(Constants.LEFT)) {
+        for(int i = 0; i < numberOfBits; i++) {
+            int bitValue = getBit(fileContentCompressed, i);
+
+            if(bitValue == Constants.LEFT) {
                 currentNode = currentNode.getLeftNode();
-            } else if(value.equals(Constants.RIGHT)) {
+            } else if(bitValue == Constants.RIGHT) {
                 currentNode = currentNode.getRightNode();
             }
 
@@ -195,5 +172,19 @@ public class HuffmanCompressor implements ICompressor, Serializable {
         }
 
         return decompressedValue.toByteArray();
+    }
+
+    /**
+     * Retrieve the bit inside a byte from an array of byte.
+     * Code provided from : http://www.herongyang.com/Java/Bit-String-Get-Bit-from-Byte-Array.html
+     * @param data array of byte
+     * @param pos the bit needed
+     * @return the bit
+     */
+    private static int getBit(byte[] data, int pos) {
+        int posByte = pos/8;
+        int posBit = pos%8;
+        byte valByte = data[posByte];
+        return valByte>>(8-(posBit+1)) & 0x0001;
     }
 }
