@@ -1,8 +1,12 @@
 package Compressor;
 
 import Converter.Read;
+import Converter.Write;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class LZWCompressor implements ICompressor {
 
@@ -58,6 +62,7 @@ public class LZWCompressor implements ICompressor {
             compressedChain.add(dictionary.get(s));
         }
 
+        Write.saveDataToFileCOMP(compressedChain, this.outputFile);
     }
 
         /*
@@ -97,6 +102,8 @@ public class LZWCompressor implements ICompressor {
             s=""+seq;
         }
 
+        Write.saveDataToFileDECO(decompressedChain, this.outputFile);
     }
+
 }
 
