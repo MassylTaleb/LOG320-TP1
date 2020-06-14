@@ -5,13 +5,13 @@ import java.util.List;
 
 public class LZWData implements Serializable {
 
-    private List<String> chain;
+    private List<Integer> compressedChain;
 
-    public LZWData(List<?> chain) {
-        this.chain = (List<String>) chain;
+    public LZWData(List<Integer> compressedChain) {
+        this.compressedChain = compressedChain;
     }
 
-    public List<String> getChain() {
-        return chain;
+    public List<Integer> getCompressedChain() {
+        return compressedChain;
     }
 }

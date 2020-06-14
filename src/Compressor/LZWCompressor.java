@@ -2,6 +2,7 @@ package Compressor;
 
 import Converter.Read;
 import Converter.Write;
+import Model.LZWData;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -12,13 +13,11 @@ public class LZWCompressor implements ICompressor {
 
     private String inputFile;
     private String outputFile;
-    private byte[] fileInputAsByteArray;
+
 
     public LZWCompressor(String inputFile, String outputFile) {
         this.inputFile = inputFile;
         this.outputFile = outputFile;
-        this.fileInputAsByteArray = Read.convertFileToByteArray(this.inputFile);
-        System.out.println(new String(fileInputAsByteArray));
     }
 
     /*
@@ -35,19 +34,25 @@ public class LZWCompressor implements ICompressor {
     */
     @Override
     public void compress() {
+        byte[] fileInputAsByteArray = Read.convertFileToByteArray(this.inputFile);
+        System.out.println(new String(fileInputAsByteArray));
+
         Map<String, Integer> dictionary = new HashMap<String, Integer>();
         List<Integer> compressedChain = new ArrayList<Integer>();
         int dictionarySize = 256;
-        byte c;
+        char c;
         String s;
 
         for (int i = 0; i < dictionarySize; i++) {
             dictionary.put("" + (char) i, i);
         }
 
-        s = "" + fileInputAsByteArray[0];
+        s = "" + (char) fileInputAsByteArray[0];
         for (int i = 1; i < fileInputAsByteArray.length; i++) {
-            c = fileInputAsByteArray[i];
+            if (fileInputAsByteArray[i]<0){
+                c = (char) Byte.toUnsignedInt(fileInputAsByteArray[i]);
+            }else{
+            c = (char) fileInputAsByteArray[i];}
             String sc = s + c;
             if (dictionary.containsKey(sc)) {
                 s = sc;
@@ -62,8 +67,10 @@ public class LZWCompressor implements ICompressor {
             compressedChain.add(dictionary.get(s));
         }
 
-        Write.saveDataToFileCOMP(compressedChain, this.outputFile);
+        LZWData dataToSave = new LZWData(compressedChain);
+        Write.saveDataToFile(dataToSave, this.outputFile);
     }
+
 
         /*
         s = NULL
@@ -79,6 +86,9 @@ public class LZWCompressor implements ICompressor {
         */
     @Override
     public void decompress() {
+        LZWData lzwData = Read.readCompressedChain(this.inputFile);
+        List<Integer> compressedChain = new ArrayList<Integer>(lzwData.getCompressedChain());
+
         Map<Integer,String> dictionary = new HashMap<Integer,String>();
         List<String> decompressedChain = new ArrayList<String>();
         int dictionarySize = 256;
@@ -89,8 +99,8 @@ public class LZWCompressor implements ICompressor {
             dictionary.put(i, "" + (char) i);
         }
 
-        for (int i = 0; i < fileInputAsByteArray.length; i++) {
-            k = fileInputAsByteArray[i];
+        for (int i = 0; i < compressedChain.size(); i++) {
+            k = compressedChain.get(i);
             seq=dictionary.get(k);
             if(seq.equals("")) {
                 seq=s + s.charAt(0);
@@ -101,8 +111,8 @@ public class LZWCompressor implements ICompressor {
             }
             s=""+seq;
         }
-
-        Write.saveDataToFileDECO(decompressedChain, this.outputFile);
+        System.out.println(new String(String.valueOf(decompressedChain)));
+        Write.saveDataToFile(decompressedChain, this.outputFile);
     }
 
 }
