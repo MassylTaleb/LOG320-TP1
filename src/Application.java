@@ -1,6 +1,7 @@
 import Compressor.HuffmanCompressor;
 import Compressor.ICompressor;
 import Compressor.LZWCompressor;
+import Tools.Constants;
 
 public class Application {
 
