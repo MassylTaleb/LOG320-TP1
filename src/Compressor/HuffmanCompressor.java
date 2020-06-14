@@ -22,62 +22,90 @@ public class HuffmanCompressor implements ICompressor, Serializable {
     public void compress() {
 
         byte[] fileInputAsByteArray = Read.convertFileToByteArray(this.inputFile);
-        ArrayList<FrequencyNode> frequencyTable = createFrequencyTable(fileInputAsByteArray);
-        FrequencyNode rootNode = createHuffmanTree(new ArrayList<>(frequencyTable));
-        encode(frequencyTable, rootNode, fileInputAsByteArray);
+
+        TreeMap<Integer, ArrayList<FrequencyNode>> frequencyMap = createFrequencyMap(fileInputAsByteArray);
+
+        FrequencyNode rootNode = createHuffmanTree(frequencyMap);
+        encode(rootNode, fileInputAsByteArray);
     }
 
-    private ArrayList<FrequencyNode> createFrequencyTable(byte[] fileInputAsByteArray) {
+    private TreeMap<Integer, ArrayList<FrequencyNode>> createFrequencyMap(byte[] fileInputAsByteArray) {
 
-        ArrayList<FrequencyNode> frequencyTable = new ArrayList<>();
+        HashMap<Byte, Integer> frequenciesByByte = new HashMap<>();
 
         for(byte value : fileInputAsByteArray) {
-            if(!existInFrequencyTable(value, frequencyTable)) {
-                frequencyTable.add(new FrequencyNode(value));
+            if(!frequenciesByByte.containsKey(value)) {
+                frequenciesByByte.put(value, 1);
+            } else {
+                frequenciesByByte.replace(value, frequenciesByByte.get(value) + 1);
             }
         }
 
-        Collections.sort(frequencyTable);
-        return frequencyTable;
-    }
+        TreeMap<Integer, ArrayList<FrequencyNode>> frequencyNodesByFrequency = new TreeMap<>();
 
-    private boolean existInFrequencyTable(byte newValue, ArrayList<FrequencyNode> frequencyTable) {
-
-        for (FrequencyNode currentNode : frequencyTable) {
-            if (newValue == currentNode.getValue()) {
-                currentNode.incrementValue();
-                return true;
+        for(Map.Entry<Byte, Integer> entry : frequenciesByByte.entrySet()) {
+            if(!frequencyNodesByFrequency.containsKey(entry.getValue())){
+                ArrayList<FrequencyNode> frequencyNodes = new ArrayList<>();
+                frequencyNodes.add(new FrequencyNode(entry.getKey(), entry.getValue()));
+                frequencyNodesByFrequency.put(entry.getValue(), frequencyNodes);
+            } else {
+                frequencyNodesByFrequency.get(entry.getValue()).add(new FrequencyNode(entry.getKey(), entry.getValue()));
             }
         }
-        return false;
+
+        return frequencyNodesByFrequency;
     }
 
-    private FrequencyNode createHuffmanTree(ArrayList<FrequencyNode> frequencyTable) {
+    private FrequencyNode createHuffmanTree(TreeMap<Integer, ArrayList<FrequencyNode>> frequencyMap) {
 
         // Stop condition until there's only one FrequencyNode inside the list
         // This node is the root
-        if(frequencyTable.size() == 1) {
-            return frequencyTable.get(0);
+        if(frequencyMap.size() == 1 && frequencyMap.firstEntry().getValue().size() == 1) {
+            return frequencyMap.firstEntry().getValue().get(0);
         }
 
         // Remove the two lowest frequencies in the frequency table
-        FrequencyNode firstLowestFrequency = frequencyTable.remove(0);
-        FrequencyNode secondLowestFrequency = frequencyTable.remove(0);
+        if(frequencyMap.firstEntry().getValue().size() == 0 && frequencyMap.size() >= 1) {
+            frequencyMap.remove(frequencyMap.firstEntry().getKey());
+        }
 
-        // Create parent
-        FrequencyNode parentNode = new FrequencyNode(firstLowestFrequency, secondLowestFrequency);
-        frequencyTable.add(parentNode);
+        FrequencyNode firstLowestFrequency = frequencyMap.firstEntry().getValue().remove(0);
 
-        // Make sure the list is always sorted
-        Collections.sort(frequencyTable);
+        if(frequencyMap.firstEntry().getValue().size() == 0 && frequencyMap.size() >= 1) {
+            frequencyMap.remove(frequencyMap.firstEntry().getKey());
+        }
+
+        if(!frequencyMap.isEmpty()) {
+
+            FrequencyNode secondLowestFrequency = frequencyMap.firstEntry().getValue().remove(0);
+
+            // Create parent
+            FrequencyNode parentNode = new FrequencyNode(firstLowestFrequency, secondLowestFrequency);
+
+            if(frequencyMap.containsKey(parentNode.getFrequency())) {
+
+                frequencyMap.get(parentNode.getFrequency()).add(parentNode);
+
+            } else {
+                ArrayList<FrequencyNode> frequencyNodes = new ArrayList<>();
+                frequencyNodes.add(parentNode);
+                frequencyMap.put(parentNode.getFrequency(), frequencyNodes);
+            }
+
+        } else {
+            ArrayList<FrequencyNode> frequencyNodes = new ArrayList<>();
+            frequencyNodes.add(firstLowestFrequency);
+            frequencyMap.put(firstLowestFrequency.getFrequency(), frequencyNodes);
+            return firstLowestFrequency;
+        }
 
         // Recursive
-        createHuffmanTree(frequencyTable);
+        createHuffmanTree(frequencyMap);
 
-        return frequencyTable.get(0);
+        return frequencyMap.firstEntry().getValue().get(0);
     }
 
-    private void encode(ArrayList<FrequencyNode> frequencyTable, FrequencyNode rootNode, byte[] fileInputAsByteArray) {
+    private void encode(FrequencyNode rootNode, byte[] fileInputAsByteArray) {
 
         Map<Byte, String> codeValueMap = new HashMap<>();
         createCodeValueMap(codeValueMap, rootNode, "");
@@ -86,7 +114,9 @@ public class HuffmanCompressor implements ICompressor, Serializable {
         int extraBitsToAdd = 8 - (encodedValue.length() % 8);
         byte[] resultValueInByteArray = encodeValueToByteArray(encodedValue, extraBitsToAdd);
 
-        HuffmanData dataToSave = new HuffmanData(frequencyTable, resultValueInByteArray, extraBitsToAdd);
+        System.out.println(Arrays.toString(resultValueInByteArray));
+
+        HuffmanData dataToSave = new HuffmanData(rootNode, resultValueInByteArray, extraBitsToAdd);
         Write.saveDataToFile(dataToSave, this.outputFile);
     }
 
@@ -140,8 +170,10 @@ public class HuffmanCompressor implements ICompressor, Serializable {
     public void decompress() {
 
         HuffmanData huffmanData = Read.convertFileToHuffmanData(this.inputFile);
-        FrequencyNode rootNode = createHuffmanTree(new ArrayList<>(huffmanData.getFrequencyTable()));
-        byte[] decodedValue = decodeValueToString(huffmanData.getFileContentCompressed(), huffmanData.getExtraBits(), rootNode);
+
+        System.out.println(Arrays.toString(huffmanData.getFileContentCompressed()));
+
+        byte[] decodedValue = decodeValueToString(huffmanData.getFileContentCompressed(), huffmanData.getExtraBits(), huffmanData.getRootNode());
         Write.saveByteArrayToFile(decodedValue, this.outputFile);
     }
 

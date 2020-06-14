@@ -9,8 +9,8 @@ public class FrequencyNode implements Comparable<FrequencyNode>, Serializable {
     private FrequencyNode leftNode;
     private FrequencyNode rightNode;
 
-    public FrequencyNode(byte value) {
-        this.frequency = 1;
+    public FrequencyNode(byte value, int frequency) {
+        this.frequency = frequency;
         this.value = value;
     }
 
@@ -18,10 +18,6 @@ public class FrequencyNode implements Comparable<FrequencyNode>, Serializable {
         this.frequency = leftNode.frequency + rightNode.frequency;
         this.leftNode = leftNode;
         this.rightNode = rightNode;
-    }
-
-    public void incrementValue() {
-        this.frequency++;
     }
 
     @Override

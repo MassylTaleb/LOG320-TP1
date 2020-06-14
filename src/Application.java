@@ -30,6 +30,8 @@ public class Application {
 
                 if(actionOnFile.equals(Constants.COMPRESS)) {
                     method.compress();
+                    ICompressor m = new HuffmanCompressor(dstPath, args[4]);
+                    m.decompress();
                 } else if (actionOnFile.equals(Constants.DECOMPRESS)) {
                     method.decompress();
                 } else {
