@@ -107,9 +107,10 @@ public class HuffmanCompressor implements ICompressor, Serializable {
 
     private void encode(FrequencyNode rootNode, byte[] fileInputAsByteArray) {
 
-        Map<Byte, String> codeValueMap = new HashMap<>();
+        Map<Integer, String> codeValueMap = new HashMap<>();
         createCodeValueMap(codeValueMap, rootNode, "");
         String encodedValue = createEncodedValue(codeValueMap, fileInputAsByteArray);
+        System.out.println(encodedValue);
 
         int extraBitsToAdd = 8 - (encodedValue.length() % 8);
         byte[] resultValueInByteArray = encodeValueToByteArray(encodedValue, extraBitsToAdd);
@@ -120,23 +121,24 @@ public class HuffmanCompressor implements ICompressor, Serializable {
         Write.saveDataToFile(dataToSave, this.outputFile);
     }
 
-    private void createCodeValueMap(Map<Byte, String> codeValueMap, FrequencyNode currentNode, String codeCurrentNode) {
+    private void createCodeValueMap(Map<Integer, String> codeValueMap, FrequencyNode currentNode, String codeCurrentNode) {
 
         if(currentNode.getLeftNode() != null && currentNode.getRightNode() != null) {
 
             createCodeValueMap(codeValueMap, currentNode.getLeftNode(),  codeCurrentNode + "0");
             createCodeValueMap(codeValueMap, currentNode.getRightNode(),  codeCurrentNode + "1");
+        } else {
+            int byteToInt = currentNode.getValue();
+            codeValueMap.put(byteToInt, codeCurrentNode);
         }
-
-        codeValueMap.put(currentNode.getValue(), codeCurrentNode);
     }
 
-    private String createEncodedValue(Map<Byte, String> codeValueMap, byte[] fileInputAsByteArray) {
+    private String createEncodedValue(Map<Integer, String> codeValueMap, byte[] fileInputAsByteArray) {
 
         ArrayList<String> valueOfEachCharacter = new ArrayList<>();
         StringBuilder codedFileInBinary = new StringBuilder();
 
-        for(byte byteValue : fileInputAsByteArray) {
+        for(int byteValue : fileInputAsByteArray) {
             valueOfEachCharacter.add(codeValueMap.get(byteValue));
         }
 
