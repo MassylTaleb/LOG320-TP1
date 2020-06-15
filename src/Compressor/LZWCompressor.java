@@ -36,20 +36,26 @@ public class LZWCompressor implements ICompressor {
     public void compress() {
         byte[] fileInputAsByteArray = Read.convertFileToByteArray(this.inputFile);
         System.out.println(new String(fileInputAsByteArray));
+        System.out.println(fileInputAsByteArray.length);
+        System.out.println(Byte.toUnsignedInt(fileInputAsByteArray[0]));
+        System.out.println(Byte.toUnsignedInt(fileInputAsByteArray[1]));
 
         Map<String, Integer> dictionary = new HashMap<String, Integer>();
         List<Integer> compressedChain = new ArrayList<Integer>();
         int dictionarySize = 256;
-        char c;
+        char c = 0;
         String s;
 
         for (int i = 0; i < dictionarySize; i++) {
-            dictionary.put("" + (char) i, i);
+            dictionary.put(""+(char)i, i);
         }
 
-        s = "" + (char) fileInputAsByteArray[0];
+
+        System.out.println(dictionary);
+
+        s = "" + (char) Byte.toUnsignedInt(fileInputAsByteArray[0]);
         for (int i = 1; i < fileInputAsByteArray.length; i++) {
-            if (fileInputAsByteArray[i]<0){
+           if (fileInputAsByteArray[i]<0){
                 c = (char) Byte.toUnsignedInt(fileInputAsByteArray[i]);
             }else{
             c = (char) fileInputAsByteArray[i];}
@@ -64,9 +70,9 @@ public class LZWCompressor implements ICompressor {
         }
 
         if (!s.equals("")) {
-            compressedChain.add(dictionary.get(s));
+           compressedChain.add(dictionary.get(s));
         }
-
+        System.out.println(compressedChain);
         LZWData dataToSave = new LZWData(compressedChain);
         Write.saveDataToFile(dataToSave, this.outputFile);
     }
@@ -88,6 +94,8 @@ public class LZWCompressor implements ICompressor {
     public void decompress() {
         LZWData lzwData = Read.readCompressedChain(this.inputFile);
         List<Integer> compressedChain = new ArrayList<Integer>(lzwData.getCompressedChain());
+
+        System.out.println("voila  "+lzwData.getCompressedChain());
 
         Map<Integer,String> dictionary = new HashMap<Integer,String>();
         List<String> decompressedChain = new ArrayList<String>();
