@@ -1,17 +1,20 @@
 package Converter;
 
 import Model.HuffmanData;
-import Model.LZWData;
 
-import java.io.*;
-import java.util.List;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 
 public class Write {
 
     public static void saveDataToFile(HuffmanData huffmanData, String destinationPath) {
 
+        File file = new File(destinationPath);
+
         try {
-            FileOutputStream fos = new FileOutputStream(destinationPath);
+            FileOutputStream fos = new FileOutputStream(file);
             ObjectOutputStream oos = new ObjectOutputStream(fos);
             oos.writeObject(huffmanData);
             oos.close();
@@ -20,40 +23,14 @@ public class Write {
         }
     }
 
+    public static void saveByteArrayToFile(byte[] decompressedData, String destinationPath) {
 
-    public static void saveDataToFile(LZWData lzwData, String destinationPath) {
-
-        System.out.println(lzwData);
-        try {
-            FileOutputStream fos = new FileOutputStream(destinationPath);
-            ObjectOutputStream oos = new ObjectOutputStream(fos);
-            oos.writeObject(lzwData);
-            oos.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static void saveDataToFile(List<String> decompressedChain, String destinationPath) {
+        File file = new File(destinationPath);
 
         try {
-            BufferedWriter writer = new BufferedWriter(new FileWriter(destinationPath));
-            for (String str : decompressedChain) {
-                writer.write(str.toString());
-            }
-            writer.close();
-
-            public static void saveByteArrayToFile ( byte[] decompressedData, String destinationPath){
-
-                try {
-                    FileOutputStream fos = new FileOutputStream(destinationPath);
-                    fos.write(decompressedData);
-                    fos.close();
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+            FileOutputStream fos = new FileOutputStream(file);
+            fos.write(decompressedData);
+            fos.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
