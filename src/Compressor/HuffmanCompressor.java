@@ -110,12 +110,9 @@ public class HuffmanCompressor implements ICompressor, Serializable {
         Map<Integer, String> codeValueMap = new HashMap<>();
         createCodeValueMap(codeValueMap, rootNode, "");
         String encodedValue = createEncodedValue(codeValueMap, fileInputAsByteArray);
-        System.out.println(encodedValue);
 
         int extraBitsToAdd = 8 - (encodedValue.length() % 8);
         byte[] resultValueInByteArray = encodeValueToByteArray(encodedValue, extraBitsToAdd);
-
-        System.out.println(Arrays.toString(resultValueInByteArray));
 
         HuffmanData dataToSave = new HuffmanData(rootNode, resultValueInByteArray, extraBitsToAdd);
         Write.saveDataToFile(dataToSave, this.outputFile);
@@ -172,8 +169,6 @@ public class HuffmanCompressor implements ICompressor, Serializable {
     public void decompress() {
 
         HuffmanData huffmanData = Read.convertFileToHuffmanData(this.inputFile);
-
-        System.out.println(Arrays.toString(huffmanData.getFileContentCompressed()));
 
         byte[] decodedValue = decodeValueToString(huffmanData.getFileContentCompressed(), huffmanData.getExtraBits(), huffmanData.getRootNode());
         Write.saveByteArrayToFile(decodedValue, this.outputFile);
