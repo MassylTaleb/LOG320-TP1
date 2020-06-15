@@ -39,7 +39,7 @@ public class Application {
 
             case(Constants.LZW):
 
-                method = new LZWCompressor();
+                method = new LZWCompressor(srcPath, dstPath);
 
                 if(actionOnFile.equals(Constants.COMPRESS)) {
                     method.compress();
